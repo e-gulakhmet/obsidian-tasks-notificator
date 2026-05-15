@@ -1,12 +1,24 @@
 import glob
 import logging
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 logger = logging.getLogger(__name__)
+
+
+def _to_date(val: Any) -> date | None:
+    """Convert a YAML-parsed value to a date object."""
+    if isinstance(val, date):
+        return val
+    if isinstance(val, str):
+        try:
+            return datetime.strptime(val, "%Y-%m-%d").date()
+        except ValueError:
+            return None
+    return None
 
 
 def _read_frontmatter(path: str) -> dict[str, Any] | None:
@@ -40,19 +52,8 @@ def scan_tasks(tasks_dir: str, today: date) -> list[dict[str, Any]]:
         scheduled = fm.get("scheduled")
         due = fm.get("due")
 
-        def to_date(val):
-            if isinstance(val, date):
-                return val
-            if isinstance(val, str):
-                try:
-                    from datetime import datetime
-                    return datetime.strptime(val, "%Y-%m-%d").date()
-                except ValueError:
-                    return None
-            return None
-
-        scheduled_date = to_date(scheduled)
-        due_date = to_date(due)
+        scheduled_date = _to_date(scheduled)
+        due_date = _to_date(due)
 
         if scheduled_date != today and due_date != today:
             continue
