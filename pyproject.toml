@@ -19,6 +19,7 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-mock>=3.14",
+    "respx>=0.20",
 ]
 
 [tool.hatch.build.targets.wheel]
