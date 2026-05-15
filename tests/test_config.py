@@ -1,5 +1,4 @@
 import pytest
-import os
 from notificator.config import load_config, ConfigError
 
 
