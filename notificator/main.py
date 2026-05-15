@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytz
 from apscheduler.schedulers.blocking import BlockingScheduler
