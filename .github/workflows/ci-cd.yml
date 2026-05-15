@@ -47,6 +47,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:latest
+          cache-to: type=inline
 
   deploy:
     name: Deploy to VPS
@@ -60,6 +62,6 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd ${{ secrets.VPS_DEPLOY_PATH }}
+            cd "${{ secrets.VPS_DEPLOY_PATH }}"
             docker compose pull
             docker compose up -d
