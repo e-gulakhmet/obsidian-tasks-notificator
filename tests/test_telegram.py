@@ -1,6 +1,5 @@
 import pytest
 import httpx
-from unittest.mock import patch, MagicMock
 from notificator.telegram import send_notification, TelegramError
 
 
@@ -18,7 +17,6 @@ def _task():
 
 
 def test_send_notification_calls_api(respx_mock):
-    import respx
     route = respx_mock.post("https://api.telegram.org/bot123:ABC/sendMessage").mock(
         return_value=httpx.Response(200, json={"ok": True})
     )
