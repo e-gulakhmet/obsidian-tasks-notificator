@@ -69,8 +69,8 @@ jobs:
             mkdir -p ~/obsidian-tasks-notificator
             cd ~/obsidian-tasks-notificator
 
-            # Write .env from secrets
-            cat > .env <<'ENVEOF'
+            # Write .env from secrets (appleboy/ssh-action interpolates ${{ }} before sending)
+            cat > .env << 'ENVEOF'
             TASKS_DIR=${{ secrets.TASKS_DIR }}
             TASKS_DIR_HOST=${{ secrets.TASKS_DIR_HOST }}
             TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
@@ -82,7 +82,7 @@ jobs:
             ENVEOF
 
             # Write docker-compose.yml
-            cat > docker-compose.yml <<'COMPOSEEOF'
+            cat > docker-compose.yml << 'COMPOSEEOF'
             services:
               notificator:
                 image: ghcr.io/e-gulakhmet/obsidian-tasks-notificator:latest
@@ -98,6 +98,6 @@ jobs:
             COMPOSEEOF
 
             # Pull latest image and restart
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
             docker compose up -d --remove-orphans
