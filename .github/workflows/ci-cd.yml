@@ -45,9 +45,9 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:latest
+            ghcr.io/e-gulakhmet/obsidian-tasks-notificator:latest
+            ghcr.io/e-gulakhmet/obsidian-tasks-notificator:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/e-gulakhmet/obsidian-tasks-notificator:latest
           cache-to: type=inline
 
   deploy:
@@ -55,13 +55,49 @@ jobs:
     needs: build-push
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
           script: |
-            cd "${{ secrets.VPS_DEPLOY_PATH }}"
+            set -e
+            mkdir -p ~/obsidian-tasks-notificator
+            cd ~/obsidian-tasks-notificator
+
+            # Write .env from secrets
+            cat > .env <<'ENVEOF'
+            TASKS_DIR=${{ secrets.TASKS_DIR }}
+            TASKS_DIR_HOST=${{ secrets.TASKS_DIR_HOST }}
+            TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
+            TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+            TIMEZONE=${{ secrets.TIMEZONE }}
+            STATE_FILE=${{ secrets.STATE_FILE }}
+            SCANNER_CRON=${{ secrets.SCANNER_CRON }}
+            SENDER_CRON=${{ secrets.SENDER_CRON }}
+            ENVEOF
+
+            # Write docker-compose.yml
+            cat > docker-compose.yml <<'COMPOSEEOF'
+            services:
+              notificator:
+                image: ghcr.io/e-gulakhmet/obsidian-tasks-notificator:latest
+                restart: unless-stopped
+                env_file:
+                  - .env
+                volumes:
+                  - ${TASKS_DIR_HOST}:${TASKS_DIR}:ro
+                  - notificator_data:/data
+
+            volumes:
+              notificator_data:
+            COMPOSEEOF
+
+            # Pull latest image and restart
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
-            docker compose up -d
+            docker compose up -d --remove-orphans

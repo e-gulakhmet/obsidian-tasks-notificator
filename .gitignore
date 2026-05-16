@@ -6,3 +6,7 @@ dist/
 build/
 .pytest_cache/
 .env
+.env.*
+.envrc
+data/
+tasks/

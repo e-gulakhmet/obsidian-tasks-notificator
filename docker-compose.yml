@@ -1,13 +1,11 @@
 services:
   notificator:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-local}/obsidian-tasks-notificator:latest
-    build:
-      context: .
+    image: ghcr.io/e-gulakhmet/obsidian-tasks-notificator:latest
     restart: unless-stopped
     env_file:
       - .env
     volumes:
-      - ${TASKS_DIR_HOST}:/vault/tasks:ro
+      - ${TASKS_DIR_HOST}:${TASKS_DIR}:ro
       - notificator_data:/data
 
 volumes:

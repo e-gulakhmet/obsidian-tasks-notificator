@@ -35,7 +35,17 @@ def scan_job(config: Config) -> None:
                 "id": entry_id,
                 "file": task["file_path"],
                 "title": task["title"],
+                "status": task.get("status"),
+                "priority": task.get("priority"),
+                "scheduled": task.get("scheduled"),
+                "due": task.get("due"),
+                "projects": task.get("projects", []),
+                "contexts": task.get("contexts", []),
+                "time_estimate": task.get("time_estimate"),
+                "recurrence": task.get("recurrence"),
                 "description": reminder.get("description", ""),
+                "reminder_type": reminder.get("type"),
+                "offset": reminder.get("offset"),
                 "fire_time": fire_time.astimezone(timezone.utc).isoformat(),
                 "sent_at": None,
             })
@@ -62,7 +72,23 @@ def send_job(config: Config) -> None:
             continue
 
         reminder = {"description": entry.get("description", ""), "id": entry["id"]}
-        task = {"title": entry.get("title", ""), "file_path": entry.get("file", "")}
+        tz = pytz.timezone(config.timezone)
+        fire_dt = fire_time.astimezone(tz)
+        reminder["reminder_type"] = entry.get("reminder_type")
+        reminder["offset"] = entry.get("offset")
+        reminder["fire_time_local"] = fire_dt.strftime("%-d %b %Y, %H:%M")
+        task = {
+            "title": entry.get("title", ""),
+            "file_path": entry.get("file", ""),
+            "status": entry.get("status"),
+            "priority": entry.get("priority"),
+            "scheduled": entry.get("scheduled"),
+            "due": entry.get("due"),
+            "projects": entry.get("projects", []),
+            "contexts": entry.get("contexts", []),
+            "time_estimate": entry.get("time_estimate"),
+            "recurrence": entry.get("recurrence"),
+        }
 
         try:
             send_notification(
@@ -70,7 +96,6 @@ def send_job(config: Config) -> None:
                 chat_id=config.telegram_chat_id,
                 reminder=reminder,
                 task=task,
-                anchor_value=entry.get("fire_time", ""),
             )
             entry["sent_at"] = now.isoformat()
             updated = True

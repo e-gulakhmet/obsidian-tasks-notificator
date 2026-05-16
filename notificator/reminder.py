@@ -33,13 +33,26 @@ def compute_fire_time(
             )
 
         # Normalize anchor to a timezone-aware datetime
-        if isinstance(anchor_value, date) and not isinstance(anchor_value, datetime):
-            anchor_dt = tz.localize(datetime(anchor_value.year, anchor_value.month, anchor_value.day))
-        elif isinstance(anchor_value, datetime):
+        if isinstance(anchor_value, datetime):
             if anchor_value.tzinfo is None:
                 anchor_dt = tz.localize(anchor_value)
             else:
                 anchor_dt = anchor_value.astimezone(tz)
+        elif isinstance(anchor_value, date):
+            anchor_dt = tz.localize(datetime(anchor_value.year, anchor_value.month, anchor_value.day))
+        elif isinstance(anchor_value, str):
+            parsed = None
+            for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M", "%Y-%m-%d"):
+                try:
+                    parsed = datetime.strptime(anchor_value, fmt)
+                    break
+                except ValueError:
+                    continue
+            if parsed is None:
+                raise ReminderError(
+                    f"Cannot parse anchor field '{anchor_field}' value '{anchor_value}' as date/datetime"
+                )
+            anchor_dt = tz.localize(parsed)
         else:
             raise ReminderError(
                 f"Cannot convert anchor field '{anchor_field}' value '{anchor_value}' to datetime"
