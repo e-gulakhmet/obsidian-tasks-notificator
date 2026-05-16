@@ -1,6 +1,4 @@
 import json
-import os
-from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -12,6 +10,13 @@ from notificator.state import load_state, save_state, merge_reminders
 
 def test_load_state_missing_file(tmp_path):
     result = load_state(str(tmp_path / "nonexistent.json"))
+    assert result == []
+
+
+def test_load_state_corrupt_file_returns_empty(tmp_path):
+    state_file = tmp_path / "reminders.json"
+    state_file.write_text("not valid json{{{")
+    result = load_state(str(state_file))
     assert result == []
 
 
