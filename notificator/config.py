@@ -30,6 +30,6 @@ def load_config() -> Config:
         telegram_chat_id=require("TELEGRAM_CHAT_ID"),
         timezone=require("TIMEZONE"),
         state_file=os.environ.get("STATE_FILE", "/data/reminders.json"),
-        scanner_cron=os.environ.get("SCANNER_CRON", "0 0 * * *"),
+        scanner_cron=os.environ.get("SCANNER_CRON", "*/10 * * * *"),
         sender_cron=os.environ.get("SENDER_CRON", "* * * * *"),
     )

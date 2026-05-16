@@ -19,7 +19,7 @@ def test_load_config_all_required(monkeypatch):
     assert config.telegram_chat_id == "123"
     assert config.timezone == "UTC"
     assert config.state_file == "/data/reminders.json"
-    assert config.scanner_cron == "0 0 * * *"
+    assert config.scanner_cron == "*/10 * * * *"
     assert config.sender_cron == "* * * * *"
 
 
