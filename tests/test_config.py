@@ -1,6 +1,6 @@
 import os
 import pytest
-from notificator.config import Config, ConfigError, load_config
+from notificator.config import ConfigError, load_config
 
 
 def test_load_config_all_required(monkeypatch):
