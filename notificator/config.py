@@ -12,7 +12,9 @@ class Config:
     telegram_token: str
     telegram_chat_id: str
     timezone: str
-    cron_schedule: str
+    state_file: str
+    scanner_cron: str
+    sender_cron: str
 
 
 def load_config() -> Config:
@@ -27,5 +29,7 @@ def load_config() -> Config:
         telegram_token=require("TELEGRAM_TOKEN"),
         telegram_chat_id=require("TELEGRAM_CHAT_ID"),
         timezone=require("TIMEZONE"),
-        cron_schedule=os.environ.get("CRON_SCHEDULE", "* * * * *"),
+        state_file=os.environ.get("STATE_FILE", "/data/reminders.json"),
+        scanner_cron=os.environ.get("SCANNER_CRON", "0 0 * * *"),
+        sender_cron=os.environ.get("SENDER_CRON", "* * * * *"),
     )
