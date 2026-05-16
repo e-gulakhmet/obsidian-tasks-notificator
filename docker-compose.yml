@@ -8,3 +8,7 @@ services:
       - .env
     volumes:
       - ${TASKS_DIR_HOST}:/vault/tasks:ro
+      - notificator_data:/data
+
+volumes:
+  notificator_data:
