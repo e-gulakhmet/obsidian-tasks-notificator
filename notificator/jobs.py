@@ -56,6 +56,8 @@ def send_job(config: Config) -> None:
         if entry.get("sent_at") is not None:
             continue
         fire_time = datetime.fromisoformat(entry["fire_time"])
+        if fire_time.tzinfo is None:
+            fire_time = fire_time.replace(tzinfo=timezone.utc)
         if fire_time > now:
             continue
 

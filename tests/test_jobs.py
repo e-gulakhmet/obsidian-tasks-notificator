@@ -148,7 +148,7 @@ def test_send_job_skips_future_reminders(tmp_path):
         assert mock_send.call_count == 0
 
 
-def test_send_job_retries_on_telegram_error(tmp_path):
+def test_send_job_does_not_mark_sent_on_telegram_error(tmp_path):
     from notificator.telegram import TelegramError
     config = make_config(tmp_path)
     now = datetime.now(timezone.utc)
@@ -168,3 +168,23 @@ def test_send_job_retries_on_telegram_error(tmp_path):
 
     updated = json.loads(Path(config.state_file).read_text())
     assert updated[0]["sent_at"] is None  # not marked sent on failure
+
+
+def test_send_job_handles_naive_fire_time(tmp_path):
+    config = make_config(tmp_path)
+    now = datetime.now(timezone.utc)
+    # naive datetime string (no UTC offset) — 1 minute in the past
+    past_naive = (now - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
+    state = [{
+        "id": "tasks/a.md::0",
+        "file": "tasks/a.md",
+        "title": "Task A",
+        "description": "reminder desc",
+        "fire_time": past_naive,
+        "sent_at": None,
+    }]
+    Path(config.state_file).write_text(json.dumps(state))
+
+    with patch("notificator.jobs.send_notification") as mock_send:
+        send_job(config)
+        assert mock_send.call_count == 1
