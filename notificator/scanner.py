@@ -93,7 +93,16 @@ def scan_tasks(tasks_dir: str, today: date) -> list[dict[str, Any]]:
         if fm is None:
             continue
         if fm.get("status") == "done":
-            continue
+            # For recurring tasks, "done" means the last instance is complete —
+            # skip only if today's date is in complete_instances.
+            if fm.get("recurrence"):
+                complete_instances = fm.get("complete_instances") or []
+                today_str = today.isoformat()
+                if today_str in [str(d) for d in complete_instances]:
+                    continue
+                # Today's instance is pending — proceed despite status:done
+            else:
+                continue
         scheduled = fm.get("scheduled")
         due = fm.get("due")
 

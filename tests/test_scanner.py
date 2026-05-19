@@ -163,3 +163,21 @@ def test_to_iso_str_datetime_string_with_zero_seconds():
 
 def test_to_iso_str_none_returns_none():
     assert _to_iso_str(None) is None
+
+
+# --- recurrence tests ---
+
+def test_recurring_task_with_status_done_included_when_not_completed_today():
+    """A recurring task with status:done should still be included if today is not in complete_instances."""
+    today = date(2026, 5, 19)
+    tasks = scan_tasks(str(FIXTURES), today)
+    titles = [t["title"] for t in tasks]
+    assert "Recurring Daily Standup" in titles
+
+
+def test_recurring_task_skipped_when_completed_today():
+    """A recurring task should be skipped if today is in complete_instances."""
+    today = date(2026, 5, 19)
+    tasks = scan_tasks(str(FIXTURES), today)
+    titles = [t["title"] for t in tasks]
+    assert "Recurring Daily Standup Done Today" not in titles
