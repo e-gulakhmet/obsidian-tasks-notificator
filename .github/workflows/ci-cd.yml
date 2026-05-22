@@ -89,7 +89,7 @@ jobs:
                 env_file:
                   - .env
                 volumes:
-                  - ${TASKS_DIR_HOST}:${TASKS_DIR}:ro
+                  - $TASKS_DIR_HOST:/vault/tasks:ro
                   - notificator_data:/data
 
             volumes:
