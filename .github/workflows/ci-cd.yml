@@ -62,6 +62,7 @@ jobs:
           TASKS_DIR_HOST: ${{ secrets.TASKS_DIR_HOST }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_TOPIC_ID: ${{ secrets.TELEGRAM_TOPIC_ID }}
           TIMEZONE: ${{ secrets.TIMEZONE }}
           STATE_FILE: ${{ secrets.STATE_FILE }}
           SCANNER_CRON: ${{ secrets.SCANNER_CRON }}
@@ -71,14 +72,14 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
-          envs: TASKS_DIR,TASKS_DIR_HOST,TELEGRAM_TOKEN,TELEGRAM_CHAT_ID,TIMEZONE,STATE_FILE,SCANNER_CRON,SENDER_CRON
+          envs: TASKS_DIR,TASKS_DIR_HOST,TELEGRAM_TOKEN,TELEGRAM_CHAT_ID,TELEGRAM_TOPIC_ID,TIMEZONE,STATE_FILE,SCANNER_CRON,SENDER_CRON
           script: |
             set -e
             mkdir -p ~/obsidian-tasks-notificator
             cd ~/obsidian-tasks-notificator
 
-            printf 'TASKS_DIR=%s\nTASKS_DIR_HOST=%s\nTELEGRAM_TOKEN=%s\nTELEGRAM_CHAT_ID=%s\nTIMEZONE=%s\nSTATE_FILE=%s\nSCANNER_CRON=%s\nSENDER_CRON=%s\n' \
-              "$TASKS_DIR" "$TASKS_DIR_HOST" "$TELEGRAM_TOKEN" "$TELEGRAM_CHAT_ID" \
+            printf 'TASKS_DIR=%s\nTASKS_DIR_HOST=%s\nTELEGRAM_TOKEN=%s\nTELEGRAM_CHAT_ID=%s\nTELEGRAM_TOPIC_ID=%s\nTIMEZONE=%s\nSTATE_FILE=%s\nSCANNER_CRON=%s\nSENDER_CRON=%s\n' \
+              "$TASKS_DIR" "$TASKS_DIR_HOST" "$TELEGRAM_TOKEN" "$TELEGRAM_CHAT_ID" "$TELEGRAM_TOPIC_ID" \
               "$TIMEZONE" "$STATE_FILE" "$SCANNER_CRON" "$SENDER_CRON" > .env
 
             cat > docker-compose.yml << 'EOF'
