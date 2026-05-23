@@ -11,6 +11,7 @@ class Config:
     tasks_dir: str
     telegram_token: str
     telegram_chat_id: str
+    telegram_topic_id: str | None
     timezone: str
     state_file: str
     scanner_cron: str
@@ -28,6 +29,7 @@ def load_config() -> Config:
         tasks_dir=require("TASKS_DIR"),
         telegram_token=require("TELEGRAM_TOKEN"),
         telegram_chat_id=require("TELEGRAM_CHAT_ID"),
+        telegram_topic_id=os.environ.get("TELEGRAM_TOPIC_ID") or None,
         timezone=require("TIMEZONE"),
         state_file=os.environ.get("STATE_FILE", "/data/reminders.json"),
         scanner_cron=os.environ.get("SCANNER_CRON", "*/10 * * * *"),

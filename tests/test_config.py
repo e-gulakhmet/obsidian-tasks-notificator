@@ -47,3 +47,25 @@ def test_load_config_missing_required(monkeypatch):
 
     with pytest.raises(ConfigError, match="TASKS_DIR"):
         load_config()
+
+
+def test_load_config_topic_id_optional(monkeypatch):
+    """TELEGRAM_TOPIC_ID is optional — defaults to None when absent."""
+    monkeypatch.setenv("TASKS_DIR", "/tasks")
+    monkeypatch.setenv("TELEGRAM_TOKEN", "tok")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "123")
+    monkeypatch.setenv("TIMEZONE", "UTC")
+    monkeypatch.delenv("TELEGRAM_TOPIC_ID", raising=False)
+    config = load_config()
+    assert config.telegram_topic_id is None
+
+
+def test_load_config_topic_id_set(monkeypatch):
+    """TELEGRAM_TOPIC_ID is loaded when present."""
+    monkeypatch.setenv("TASKS_DIR", "/tasks")
+    monkeypatch.setenv("TELEGRAM_TOKEN", "tok")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "123")
+    monkeypatch.setenv("TIMEZONE", "UTC")
+    monkeypatch.setenv("TELEGRAM_TOPIC_ID", "456")
+    config = load_config()
+    assert config.telegram_topic_id == "456"
