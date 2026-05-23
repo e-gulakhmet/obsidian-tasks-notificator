@@ -96,6 +96,7 @@ def send_job(config: Config) -> None:
                 chat_id=config.telegram_chat_id,
                 reminder=reminder,
                 task=task,
+                topic_id=config.telegram_topic_id,
             )
             entry["sent_at"] = now.isoformat()
             updated = True

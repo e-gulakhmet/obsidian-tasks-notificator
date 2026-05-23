@@ -14,6 +14,7 @@ def make_config(tmp_path, tasks_dir=None):
         tasks_dir=str(tasks_dir or tmp_path / "tasks"),
         telegram_token="tok",
         telegram_chat_id="123",
+        telegram_topic_id=None,
         timezone="UTC",
         state_file=str(tmp_path / "reminders.json"),
         scanner_cron="0 0 * * *",
@@ -108,6 +109,54 @@ def test_send_job_sends_due_reminders(tmp_path):
 
     updated = json.loads(Path(config.state_file).read_text())
     assert updated[0]["sent_at"] is not None
+
+
+def test_send_job_passes_topic_id_to_send_notification(tmp_path, monkeypatch):
+    """send_job passes config.telegram_topic_id to send_notification."""
+    import json
+    from datetime import datetime, timezone, timedelta
+    from notificator.jobs import send_job
+    from notificator.config import Config
+
+    state = [{
+        "id": "f::0",
+        "file": str(tmp_path / "t.md"),
+        "title": "T",
+        "status": "open",
+        "priority": None,
+        "scheduled": None,
+        "due": None,
+        "projects": [],
+        "contexts": [],
+        "time_estimate": None,
+        "recurrence": None,
+        "description": "",
+        "reminder_type": "relative",
+        "offset": "-PT0M",
+        "fire_time": (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(),
+        "sent_at": None,
+    }]
+    state_file = tmp_path / "state.json"
+    state_file.write_text(json.dumps(state))
+
+    config = Config(
+        tasks_dir=str(tmp_path),
+        telegram_token="tok",
+        telegram_chat_id="chat",
+        telegram_topic_id="99",
+        timezone="UTC",
+        state_file=str(state_file),
+        scanner_cron="*/10 * * * *",
+        sender_cron="* * * * *",
+    )
+
+    calls = []
+    monkeypatch.setattr(
+        "notificator.jobs.send_notification",
+        lambda **kwargs: calls.append(kwargs),
+    )
+    send_job(config)
+    assert calls[0]["topic_id"] == "99"
 
 
 def test_send_job_skips_already_sent(tmp_path):
