@@ -245,3 +245,31 @@ def test_send_notification_raises_on_api_error(respx_mock):
             reminder=_reminder(),
             task=_task(),
         )
+
+
+def test_send_notification_includes_message_thread_id_when_topic_set(respx_mock):
+    respx_mock.post("https://api.telegram.org/botTOKEN/sendMessage").mock(
+        return_value=httpx.Response(200, json={"ok": True})
+    )
+    reminder = {"id": "r1", "reminder_type": "relative", "offset": "-PT0M", "fire_time_local": "22 May 2026, 19:20"}
+    task = {"title": "Test", "file_path": "/tasks/test.md", "status": "open", "priority": None,
+            "scheduled": None, "due": None, "projects": [], "contexts": [], "time_estimate": None, "recurrence": None}
+    send_notification("TOKEN", "CHAT", reminder, task, topic_id="42")
+    request = respx_mock.calls[0].request
+    import json
+    payload = json.loads(request.content)
+    assert payload["message_thread_id"] == 42
+
+
+def test_send_notification_no_message_thread_id_when_topic_not_set(respx_mock):
+    respx_mock.post("https://api.telegram.org/botTOKEN/sendMessage").mock(
+        return_value=httpx.Response(200, json={"ok": True})
+    )
+    reminder = {"id": "r1", "reminder_type": "relative", "offset": "-PT0M", "fire_time_local": "22 May 2026, 19:20"}
+    task = {"title": "Test", "file_path": "/tasks/test.md", "status": "open", "priority": None,
+            "scheduled": None, "due": None, "projects": [], "contexts": [], "time_estimate": None, "recurrence": None}
+    send_notification("TOKEN", "CHAT", reminder, task, topic_id=None)
+    request = respx_mock.calls[0].request
+    import json
+    payload = json.loads(request.content)
+    assert "message_thread_id" not in payload

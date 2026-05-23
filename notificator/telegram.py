@@ -166,14 +166,15 @@ def send_notification(
     chat_id: str,
     reminder: dict[str, Any],
     task: dict[str, Any],
+    topic_id: str | None = None,
 ) -> None:
     """Send a Telegram message for a fired reminder. Raises TelegramError on failure."""
     text = _format_message(reminder, task)
     url = TELEGRAM_API.format(token=token)
-    response = httpx.post(
-        url,
-        json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
-    )
+    payload: dict[str, Any] = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
+    if topic_id:
+        payload["message_thread_id"] = int(topic_id)
+    response = httpx.post(url, json=payload)
     if not response.is_success:
         raise TelegramError(
             f"Telegram API returned {response.status_code}: {response.text}"
