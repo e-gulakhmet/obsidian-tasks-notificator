@@ -219,6 +219,43 @@ def test_send_job_does_not_mark_sent_on_telegram_error(tmp_path):
     assert updated[0]["sent_at"] is None  # not marked sent on failure
 
 
+def test_send_job_persists_success_before_later_unexpected_error(tmp_path):
+    config = make_config(tmp_path)
+    now = datetime.now(timezone.utc)
+    past = (now - timedelta(minutes=1)).isoformat()
+    state = [
+        {
+            "id": "tasks/a.md::0",
+            "file": "tasks/a.md",
+            "title": "Task A",
+            "description": "reminder desc",
+            "fire_time": past,
+            "sent_at": None,
+        },
+        {
+            "id": "tasks/b.md::0",
+            "file": "tasks/b.md",
+            "title": "Task B",
+            "description": "reminder desc",
+            "fire_time": past,
+            "sent_at": None,
+        },
+    ]
+    Path(config.state_file).write_text(json.dumps(state))
+
+    def send_or_raise(**kwargs):
+        if kwargs["reminder"]["id"] == "tasks/b.md::0":
+            raise RuntimeError("connection reset")
+
+    with patch("notificator.jobs.send_notification", side_effect=send_or_raise):
+        send_job(config)
+
+    updated = json.loads(Path(config.state_file).read_text())
+    by_id = {entry["id"]: entry for entry in updated}
+    assert by_id["tasks/a.md::0"]["sent_at"] is not None
+    assert by_id["tasks/b.md::0"]["sent_at"] is None
+
+
 def test_send_job_handles_naive_fire_time(tmp_path):
     config = make_config(tmp_path)
     now = datetime.now(timezone.utc)

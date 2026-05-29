@@ -1,9 +1,24 @@
 import json
 import logging
 import os
+from contextlib import contextmanager
 from typing import Any
 
+import fcntl
+
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def state_file_lock(state_file: str):
+    """Serialize readers/writers that update the shared reminder state."""
+    lock_path = state_file + ".lock"
+    with open(lock_path, "w", encoding="utf-8") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
 
 
 def load_state(state_file: str) -> list[dict[str, Any]]:
