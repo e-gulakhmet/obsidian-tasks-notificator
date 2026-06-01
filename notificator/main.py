@@ -7,6 +7,7 @@ from notificator.config import ConfigError, load_config
 from notificator.jobs import scan_job, send_job
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
