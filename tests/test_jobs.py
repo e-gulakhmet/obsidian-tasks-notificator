@@ -34,7 +34,7 @@ def test_scan_job_writes_state_file(tmp_path):
     today = datetime.now(timezone.utc).date().isoformat()
     write_task(tasks_dir, "a.md", f"""---
 title: Task A
-scheduled: {today}
+scheduled: {today}T09:00
 reminders:
   - type: absolute
     description: test reminder
@@ -55,7 +55,7 @@ def test_scan_job_preserves_sent_at(tmp_path):
     today = datetime.now(timezone.utc).date().isoformat()
     write_task(tasks_dir, "a.md", f"""---
 title: Task A
-scheduled: {today}
+scheduled: {today}T09:00
 reminders:
   - type: absolute
     description: test reminder
@@ -76,6 +76,44 @@ reminders:
     scan_job(config)
     state = json.loads(Path(config.state_file).read_text())
     assert state[0]["sent_at"] == "2026-05-16T09:00:05+00:00"
+
+
+def test_scan_job_skips_task_with_date_only_scheduled(tmp_path):
+    tasks_dir = tmp_path / "tasks"
+    today = datetime.now(timezone.utc).date().isoformat()
+    write_task(tasks_dir, "a.md", f"""---
+title: Task A
+scheduled: {today}
+reminders:
+  - type: absolute
+    description: test reminder
+    datetime: "{today}T09:00:00+00:00"
+---
+""")
+    config = make_config(tmp_path, tasks_dir)
+    scan_job(config)
+    state = json.loads(Path(config.state_file).read_text())
+    assert state == []
+
+
+def test_scan_job_keeps_task_with_datetime_scheduled(tmp_path):
+    tasks_dir = tmp_path / "tasks"
+    today = datetime.now(timezone.utc).date().isoformat()
+    write_task(tasks_dir, "a.md", f"""---
+title: Task A
+scheduled: {today}T09:00
+reminders:
+  - type: relative
+    description: start time
+    relatedTo: scheduled
+    offset: "-PT0M"
+---
+""")
+    config = make_config(tmp_path, tasks_dir)
+    scan_job(config)
+    state = json.loads(Path(config.state_file).read_text())
+    assert len(state) == 1
+    assert state[0]["scheduled"] == f"{today}T09:00"
 
 
 def test_scan_job_empty_tasks_dir(tmp_path):

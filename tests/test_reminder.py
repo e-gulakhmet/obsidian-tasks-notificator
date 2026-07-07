@@ -16,7 +16,7 @@ def _task(scheduled=None, due=None):
 
 
 def test_relative_zero_offset_scheduled():
-    task = _task(scheduled=date(2026, 5, 15))
+    task = _task(scheduled=datetime(2026, 5, 15, 9, 0))
     reminder = {
         "id": "rem_1",
         "type": "relative",
@@ -25,12 +25,12 @@ def test_relative_zero_offset_scheduled():
         "offset": "-PT0M",
     }
     fire = compute_fire_time(reminder, task, TZ)
-    expected = TZ.localize(datetime(2026, 5, 15, 0, 0, 0))
+    expected = TZ.localize(datetime(2026, 5, 15, 9, 0, 0))
     assert fire == expected
 
 
 def test_relative_30min_before_scheduled():
-    task = _task(scheduled=date(2026, 5, 15))
+    task = _task(scheduled="2026-05-15T09:00")
     reminder = {
         "id": "rem_2",
         "type": "relative",
@@ -39,8 +39,21 @@ def test_relative_30min_before_scheduled():
         "offset": "-PT30M",
     }
     fire = compute_fire_time(reminder, task, TZ)
-    expected = TZ.localize(datetime(2026, 5, 14, 23, 30, 0))
+    expected = TZ.localize(datetime(2026, 5, 15, 8, 30, 0))
     assert fire == expected
+
+
+def test_relative_scheduled_without_time_raises():
+    task = _task(scheduled=date(2026, 5, 15))
+    reminder = {
+        "id": "rem_2",
+        "type": "relative",
+        "description": "30 minutes before",
+        "relatedTo": "scheduled",
+        "offset": "-PT30M",
+    }
+    with pytest.raises(ReminderError, match="scheduled.*no time component"):
+        compute_fire_time(reminder, task, TZ)
 
 
 def test_relative_1h_after_due():

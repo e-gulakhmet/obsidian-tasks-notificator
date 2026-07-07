@@ -5,7 +5,7 @@ from typing import Any
 import pytz
 
 from notificator.config import Config
-from notificator.reminder import compute_fire_time, ReminderError
+from notificator.reminder import compute_fire_time, has_time_component, ReminderError
 from notificator.scanner import scan_tasks
 from notificator.state import load_state, merge_reminders, save_state, state_file_lock
 from notificator.telegram import TelegramError, send_notification
@@ -23,6 +23,12 @@ def scan_job(config: Config) -> None:
 
     incoming: list[dict[str, Any]] = []
     for task in tasks:
+        if not has_time_component(task.get("scheduled")):
+            logger.info(
+                "scan_job: skipping task '%s' because scheduled has no time component",
+                task.get("title"),
+            )
+            continue
         for idx, reminder in enumerate(task.get("reminders", [])):
             try:
                 fire_time = compute_fire_time(reminder, task, tz)

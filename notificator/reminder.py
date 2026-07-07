@@ -12,6 +12,22 @@ class ReminderError(Exception):
     pass
 
 
+def has_time_component(value: Any) -> bool:
+    """Return True when a scheduled value includes an explicit time."""
+    if isinstance(value, datetime):
+        return True
+    if isinstance(value, date):
+        return False
+    if isinstance(value, str):
+        for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M"):
+            try:
+                datetime.strptime(value, fmt)
+                return True
+            except ValueError:
+                continue
+    return False
+
+
 def compute_fire_time(
     reminder: dict[str, Any],
     task: dict[str, Any],
@@ -30,6 +46,10 @@ def compute_fire_time(
         if anchor_value is None:
             raise ReminderError(
                 f"Anchor field '{anchor_field}' not found in task '{task.get('title')}'"
+            )
+        if anchor_field == "scheduled" and not has_time_component(anchor_value):
+            raise ReminderError(
+                f"Anchor field '{anchor_field}' for task '{task.get('title')}' has no time component"
             )
 
         # Normalize anchor to a timezone-aware datetime
